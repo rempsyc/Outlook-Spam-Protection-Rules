@@ -1,0 +1,46 @@
+Private Sub ApplyPrimaryRulesToBothAccounts()
+    Dim ns As Outlook.NameSpace
+    Dim account As Outlook.folder
+    Dim junkFolder As Outlook.folder
+    Dim inbox As Outlook.folder
+    Dim item As Object
+    Dim rule As Outlook.rule
+    Dim rules As Outlook.rules
+
+    Set ns = Application.GetNamespace("MAPI")
+    Set rules = ns.DefaultStore.GetRules()
+
+    ' Loop through each account
+    For Each account In ns.Folders
+        ' Get the Junk and Inbox folders for the account
+        On Error Resume Next
+        Set junkFolder = account.Folders("Junk Email")
+        Set inbox = account.Folders("Inbox")
+        On Error GoTo 0
+
+        ' Skip if folders are not found (in case of non-email folders)
+        If junkFolder Is Nothing Or inbox Is Nothing Then
+            GoTo NextAccount
+        End If
+
+        ' Move all emails from Junk to Inbox to apply rules
+        For Each item In junkFolder.Items
+            If TypeOf item Is Outlook.mailItem Then
+                item.Move inbox
+            End If
+        Next item
+
+        ' Apply primary account rules to this account's Inbox
+        For Each rule In rules
+            rule.Execute ShowProgress:=True, folder:=inbox
+        Next rule
+
+NextAccount:
+    Next account
+
+    MsgBox "Primary account rules applied to both accounts successfully.", vbInformation
+End Sub
+
+Sub vba()
+
+End Sub
