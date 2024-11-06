@@ -1,0 +1,1 @@
+# Outlook-Spam-Protection-Rules
